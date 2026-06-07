@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>MoneyMom | Click to Edit Permit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0e1a;
+            font-family: 'Courier New', 'Segoe UI', monospace;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #00ff41;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .logo h1 {
+            color: #00ff41;
+            font-size: 24px;
+        }
+        .logo p {
+            color: #666;
+            font-size: 11px;
+        }
+        .logout {
+            color: #ff6666;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #ff6666;
+            border-radius: 5px;
+            background: rgba(255,102,102,0.1);
+        }
+        .main {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .canvas-container {
+            flex: 2;
+            min-width: 400px;
+            background: #111;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #00ff41;
+        }
+        .canvas-container h3 {
+            color: #00ff41;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .canvas-wrapper {
+            overflow-x: auto;
+            text-align: center;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #333;
+            cursor: text;
+            background: #fff;
+            box-shadow: 0 0 20px rgba(0,255,65,0.1);
+        }
+        .instructions {
+            flex: 1;
+            min-width: 250px;
+            background: #111;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #00ff41;
+        }
+        .instructions h3 {
+            color: #ff00ff;
+            margin-bottom: 15px;
+        }
+        .instructions p {
+            color: #0f0;
+            font-size: 13px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .instructions ul {
+            color: #888;
+            margin-left: 20px;
+            font-size: 12px;
+        }
+        .instructions li {
+            margin: 8px 0;
+        }
+        button {
+            background: #00ff41;
+            color: #000;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #ff00ff;
+            color: #fff;
+        }
+        .status {
+            background: #1a1a2e;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #00ff41;
+            text-align: center;
+        }
+        .field-list {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+        }
+        .field-list h4 {
+            color: #ff00ff;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        .field-list p {
+            font-size: 10px;
+            color: #666;
+            margin: 3px 0;
+        }
+        .upload-area {
+            background: #1a1a2e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .upload-area label {
+            display: block;
+            margin-bottom: 10px;
+            color: #00ff41;
+            font-size: 12px;
+        }
+        .upload-area input {
+            background: #222;
+            border: 1px solid #00ff41;
+            color: #0f0;
+            padding: 8px;
+            width: 100%;
+            border-radius: 5px;
+        }
+        .sample-btn {
+            background: #333;
+            color: #0f0;
+            margin-top: 10px;
+            font-size: 12px;
+            padding: 8px;
+        }
+        hr {
+            border-color: #333;
+            margin: 15px 0;
+        }
+        @media (max-width: 768px) {
+            .instructions { min-width: 100%; }
+            .canvas-container { min-width: 100%; }
+            .logo h1 { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">
+            <h1>📷 MONEYMOM | CLICK TO EDIT PERMIT</h1>
+            <p>Click directly on any text — type new text — press ENTER</p>
+        </div>
+    </div>
+    
+    <div class="main">
+        <div class="canvas-container">
+            <h3>📄 PERMIT IMAGE</h3>
+            
+            <div class="upload-area">
+                <label>📤 UPLOAD YOUR SCANNED PERMIT (JPG or PNG)</label>
+                <input type="file" id="imageUpload" accept="image/jpeg,image/png,image/jpg">
+                <p style="font-size: 11px; color: #666; margin-top: 8px;">Upload a scan or photo of a REAL Burundi driving permit</p>
+            </div>
+            
+            <div class="canvas-wrapper">
+                <canvas id="permitCanvas" width="800" height="500" style="width:100%; height:auto; border:1px solid #00ff41;"></canvas>
+            </div>
+            
+            <div class="status" id="status">📌 Upload a permit image, then click on any text to edit it</div>
+        </div>
+        
+        <div class="instructions">
+            <h3>✏️ HOW TO EDIT</h3>
+            <p>1️⃣ <strong>UPLOAD</strong> a scanned permit image above<br>
+            2️⃣ <strong>CLICK DIRECTLY</strong> on any text in the image<br>
+            3️⃣ A text box appears — <strong>TYPE</strong> your new text<br>
+            4️⃣ Press <strong>ENTER</strong> to save, <strong>ESC</strong> to cancel<br>
+            5️⃣ Click <strong>SAVE & DOWNLOAD</strong> when done</p>
+            
+            <div class="field-list">
+                <h4>📋 EDITABLE AREAS</h4>
+                <p>• SURNAME (NOM) — top left</p>
+                <p>• GIVEN NAMES (PRENOM) — below surname</p>
+                <p>• DATE OF BIRTH — third line</p>
+                <p>• PLACE OF BIRTH — next to date</p>
+                <p>• RESIDENCE — fourth line</p>
+                <p>• LICENSE NUMBER — fifth line</p>
+                <p>• ISSUE DATE — bottom left</p>
+                <p>• EXPIRY DATE — bottom right</p>
+                <p>• CATEGORIES — bottom center</p>
+            </div>
+            
+            <hr>
+            
+            <button id="saveBtn">💾 SAVE & DOWNLOAD AS PNG</button>
+            <button id="resetBtn" style="background:#333; margin-top:10px;">⟳ RESET TO ORIGINAL</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Canvas elements
+    const canvas = document.getElementById('permitCanvas');
+    const ctx = canvas.getContext('2d');
+    const fileInput = document.getElementById('imageUpload');
+    const statusDiv = document.getElementById('status');
+    const saveBtn = document.getElementById('saveBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    
+    // Variables
+    let originalImage = null;
+    let currentImageData = null;
+    let currentEditing = null;
+    let editInput = null;
+    let canvasWidth = 800;
+    let canvasHeight = 500;
+    
+    // Text areas (relative to 800x500 canvas)
+    // These coordinates work for most standard ID card scans
+    // You can adjust these numbers if needed
+    let textAreas = {
+        surname: { x: 180, y: 85, w: 220, h: 22, label: 'SURNAME', default: '' },
+        givenNames: { x: 180, y: 110, w: 220, h: 22, label: 'GIVEN NAMES', default: '' },
+        dob: { x: 180, y: 135, w: 100, h: 20, label: 'DATE OF BIRTH', default: '' },
+        pob: { x: 290, y: 135, w: 200, h: 20, label: 'PLACE OF BIRTH', default: '' },
+        residence: { x: 180, y: 160, w: 260, h: 22, label: 'RESIDENCE', default: '' },
+        licenseNumber: { x: 180, y: 185, w: 220, h: 22, label: 'LICENSE NUMBER', default: '' },
+        issueDate: { x: 170, y: 260, w: 100, h: 20, label: 'ISSUE DATE', default: '' },
+        issuePlace: { x: 460, y: 260, w: 150, h: 20, label: 'PLACE OF ISSUE', default: '' },
+        categories: { x: 140, y: 285, w: 100, h: 22, label: 'CATEGORIES', default: '' },
+        expiryDate: { x: 460, y: 285, w: 100, h: 20, label: 'EXPIRY DATE', default: '' },
+        cardNumber: { x: 140, y: 310, w: 160, h: 20, label: 'CARD NUMBER', default: '' }
+    };
+    
+    // Store current text values
+    let currentValues = {};
+    for (let key in textAreas) {
+        currentValues[key] = '';
+    }
+    
+    // Function to draw everything on canvas
+    function drawCanvas() {
+        if (!currentImageData) return;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw the image
+        ctx.drawImage(currentImageData, 0, 0, canvas.width, canvas.height);
+        
+        // Draw text from currentValues
+        ctx.font = 'bold 14px "Courier New", monospace';
+        ctx.fillStyle = '#000000';
+        ctx.shadowBlur = 0;
+        
+        for (let key in textAreas) {
+            if (currentValues[key]) {
+                const area = textAreas[key];
+                ctx.fillText(currentValues[key].toUpperCase(), area.x, area.y + 14);
+            }
+        }
+        
+        // Draw highlight box around currently editing field
+        if (currentEditing && textAreas[currentEditing]) {
+            const area = textAreas[currentEditing];
+            ctx.save();
+            ctx.strokeStyle = '#ff00ff';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.strokeRect(area.x - 2, area.y, area.w + 4, area.h);
+            ctx.restore();
+        }
+    }
+    
+    // Function to detect which text area was clicked
+    function getTextAreaFromClick(mouseX, mouseY) {
+        for (let key in textAreas) {
+            const area = textAreas[key];
+            if (mouseX >= area.x && mouseX <= area.x + area.w &&
+                mouseY >= area.y && mouseY <= area.y + area.h) {
+                return key;
+            }
+        }
+        return null;
+    }
+    
+    // Auto-detect text positions from image using OCR-like approach
+    // This scans the image to find where text exists
+    function autoDetectTextPositions(imageData) {
+        // This is a simplified approach
+        // For now, we use the manual coordinates
+        // User can adjust by clicking the "Adjust Mode" later
+        statusDiv.innerHTML = '✅ Text areas set. Click on any text to edit.';
+    }
+    
+    // Create input overlay for editing
+    function startEditing(fieldKey) {
+        if (editInput) {
+            document.body.removeChild(editInput);
+            editInput = null;
+        }
+        
+        currentEditing = fieldKey;
+        const area = textAreas[fieldKey];
+        
+        // Get canvas position on screen
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        let screenX = rect.left + (area.x / scaleX);
+        let screenY = rect.top + (area.y / scaleY);
+        let screenW = area.w / scaleX;
+        let screenH = area.h / scaleY;
+        
+        // Ensure input stays within viewport
+        screenX = Math.max(10, Math.min(screenX, window.innerWidth - screenW - 10));
+        screenY = Math.max(10, Math.min(screenY, window.innerHeight - screenH - 10));
+        
+        // Create input element
+        editInput = document.createElement('input');
+        editInput.type = 'text';
+        editInput.value = currentValues[fieldKey] || '';
+        editInput.style.position = 'fixed';
+        editInput.style.left = screenX + 'px';
+        editInput.style.top = screenY + 'px';
+        editInput.style.width = screenW + 'px';
+        editInput.style.height = screenH + 'px';
+        editInput.style.fontSize = '14px';
+        editInput.style.fontWeight = 'bold';
+        editInput.style.fontFamily = '"Courier New", monospace';
+        editInput.style.backgroundColor = '#fff';
+        editInput.style.color = '#000';
+        editInput.style.border = '2px solid #ff00ff';
+        editInput.style.outline = 'none';
+        editInput.style.padding = '2px 4px';
+        editInput.style.zIndex = '10000';
+        editInput.style.borderRadius = '3px';
+        
+        editInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                currentValues[fieldKey] = editInput.value;
+                drawCanvas();
+                document.body.removeChild(editInput);
+                editInput = null;
+                currentEditing = null;
+                statusDiv.innerHTML = `✅ Saved "${editInput.value}" to ${area.label}`;
+            } else if (e.key === 'Escape') {
+                document.body.removeChild(editInput);
+                editInput = null;
+                currentEditing = null;
+                statusDiv.innerHTML = `❌ Editing cancelled`;
+            }
+        });
+        
+        editInput.addEventListener('blur', function() {
+            if (editInput) {
+                currentValues[fieldKey] = editInput.value;
+                drawCanvas();
+                document.body.removeChild(editInput);
+                editInput = null;
+                currentEditing = null;
+                statusDiv.innerHTML = `✅ Saved to ${area.label}`;
+            }
+        });
+        
+        document.body.appendChild(editInput);
+        editInput.focus();
+        editInput.select();
+        
+        statusDiv.innerHTML = `✏️ Editing ${area.label} — type new text, press ENTER to save`;
+    }
+    
+    // Handle canvas click
+    canvas.addEventListener('click', function(e) {
+        if (!currentImageData) {
+            statusDiv.innerHTML = '⚠️ Please upload a permit image first';
+            return;
+        }
+        
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        const mouseX = (e.clientX - rect.left) * scaleX;
+        const mouseY = (e.clientY - rect.top) * scaleY;
+        
+        const field = getTextAreaFromClick(mouseX, mouseY);
+        if (field) {
+            startEditing(field);
+        } else {
+            statusDiv.innerHTML = '⚠️ Click directly on a text field (Surname, Name, Date, License number, etc.)';
+            setTimeout(() => {
+                if (!currentEditing) {
+                    statusDiv.innerHTML = '✅ Click on any text on the permit to edit it';
+                }
+            }, 2000);
+        }
+    });
+    
+    // Handle image upload
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                // Set canvas size based on image aspect ratio
+                const maxWidth = 800;
+                const scale = maxWidth / img.width;
+                canvasWidth = maxWidth;
+                canvasHeight = img.height * scale;
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                
+                // Scale text area coordinates
+                const xScale = canvasWidth / img.width;
+                const yScale = canvasHeight / img.height;
+                
+                for (let key in textAreas) {
+                    textAreas[key].x = Math.round(textAreas[key].x * xScale);
+                    textAreas[key].y = Math.round(textAreas[key].y * yScale);
+                    textAreas[key].w = Math.round(textAreas[key].w * xScale);
+                    textAreas[key].h = Math.round(textAreas[key].h * yScale);
+                }
+                
+                // Store original image
+                originalImage = img;
+                currentImageData = img;
+                
+                // Reset values
+                for (let key in textAreas) {
+                    currentValues[key] = '';
+                }
+                
+                drawCanvas();
+                statusDiv.innerHTML = '✅ Image loaded! Click on any text field to edit it directly.';
+                
+                // Try to auto-detect text (basic)
+                setTimeout(() => {
+                    statusDiv.innerHTML = '✅ Ready. Click on SURNAME, NAME, DATE, LICENSE NUMBER, etc. to edit.';
+                }, 1500);
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    // Save and download
+    saveBtn.addEventListener('click', function() {
+        if (!currentImageData) {
+            statusDiv.innerHTML = '⚠️ No image to save. Please upload a permit first.';
+            return;
+        }
+        
+        drawCanvas();
+        
+        const link = document.createElement('a');
+        link.download = 'edited_permit.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        statusDiv.innerHTML = '💾 Permit saved and downloaded!';
+        setTimeout(() => {
+            statusDiv.innerHTML = '✅ Click on any text field to continue editing';
+        }, 3000);
+    });
+    
+    // Reset to original
+    resetBtn.addEventListener('click', function() {
+        if (originalImage) {
+            currentImageData = originalImage;
+            for (let key in textAreas) {
+                currentValues[key] = '';
+            }
+            drawCanvas();
+            statusDiv.innerHTML = '⟳ Reset to original image. All edits cleared.';
+        } else {
+            statusDiv.innerHTML = '⚠️ No image to reset. Upload a permit first.';
+        }
+    });
+    
+    // Initial canvas setup
+    canvas.width = 800;
+    canvas.height = 500;
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, 800, 500);
+    ctx.fillStyle = '#999';
+    ctx.font = '14px monospace';
+    ctx.fillText('Upload a permit image to start editing', 250, 250);
+    
+    statusDiv.innerHTML = '📌 Upload a permit image (JPG or PNG), then click on any text to edit it';
+</script>
+</body>
+</html>
