@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MoneyMom | Permit Editor - Draw Text Areas</title>
+    <title>MoneyMom | Simple Text Editor</title>
     <style>
         * {
             margin: 0;
@@ -13,82 +13,118 @@
         body {
             background: #0a0e1a;
             font-family: 'Courier New', monospace;
-            padding: 15px;
+            padding: 20px;
+            min-height: 100vh;
         }
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
         }
         .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            text-align: center;
+            margin-bottom: 30px;
             padding-bottom: 15px;
             border-bottom: 1px solid #00ff41;
-            flex-wrap: wrap;
         }
-        .logo h1 {
+        .header h1 {
             color: #00ff41;
-            font-size: 24px;
+            font-size: 28px;
         }
-        .main {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
+        .header p {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
         }
-        .canvas-container {
-            flex: 2;
-            min-width: 500px;
+        .upload-area {
             background: #111;
-            padding: 15px;
+            border: 2px dashed #00ff41;
             border-radius: 10px;
-            border: 1px solid #00ff41;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            cursor: pointer;
         }
-        .canvas-container h3 {
+        .upload-area:hover {
+            border-color: #ff00ff;
+            background: #1a1a2e;
+        }
+        .upload-area input {
+            display: none;
+        }
+        .upload-area label {
             color: #00ff41;
-            margin-bottom: 15px;
+            font-size: 16px;
+            cursor: pointer;
         }
-        .canvas-wrapper {
-            overflow-x: auto;
+        .image-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
             text-align: center;
         }
-        canvas {
+        .image-wrapper {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+        }
+        #permitImage {
             max-width: 100%;
             height: auto;
             border: 1px solid #00ff41;
-            cursor: crosshair;
+            border-radius: 5px;
+            background: #fff;
         }
-        .instructions {
-            flex: 1;
-            min-width: 280px;
+        .editable-text {
+            position: absolute;
+            background: rgba(0, 255, 65, 0.15);
+            border: 1px dashed #00ff41;
+            cursor: text;
+            transition: all 0.2s;
+        }
+        .editable-text:hover {
+            background: rgba(255, 0, 255, 0.2);
+            border-color: #ff00ff;
+        }
+        .editable-text.editing {
+            background: rgba(255, 255, 0, 0.3);
+            border: 2px solid #ff00ff;
+            z-index: 100;
+        }
+        .controls {
             background: #111;
-            padding: 20px;
-            border-radius: 10px;
             border: 1px solid #00ff41;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
         }
-        .instructions h3 {
+        .controls h3 {
             color: #ff00ff;
             margin-bottom: 15px;
         }
-        .instructions p {
-            color: #0f0;
-            font-size: 13px;
-            margin-bottom: 10px;
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
         }
         button {
             background: #00ff41;
             color: #000;
             border: none;
-            padding: 10px 15px;
+            padding: 10px 20px;
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
-            margin: 5px;
         }
         button:hover {
             background: #ff00ff;
             color: #fff;
+        }
+        .btn-danger {
+            background: #ff4444;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #cc0000;
         }
         .status {
             background: #1a1a2e;
@@ -99,488 +135,473 @@
             color: #00ff41;
             text-align: center;
         }
-        .field-list {
-            margin-top: 15px;
-            padding-top: 10px;
-            border-top: 1px solid #333;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .field-item {
+        .fields-panel {
+            margin-top: 20px;
+            padding: 15px;
             background: #1a1a2e;
-            margin: 8px 0;
-            padding: 8px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border-radius: 8px;
         }
-        .field-item.active {
-            background: #ff00ff22;
-            border: 1px solid #ff00ff;
+        .fields-panel h4 {
+            color: #00ff41;
+            margin-bottom: 10px;
         }
-        .field-name {
-            color: #ff00ff;
-            font-size: 12px;
-        }
-        .field-value {
-            color: #0f0;
-            font-size: 11px;
-            font-family: monospace;
-        }
-        .delete-field {
-            background: #ff4444;
-            color: #fff;
-            border: none;
-            padding: 2px 6px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 10px;
-        }
-        .mode-buttons {
+        .field-row {
             display: flex;
             gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+            margin-bottom: 8px;
+            align-items: center;
         }
-        .mode-active {
-            background: #ff00ff;
-            color: #fff;
+        .field-row label {
+            color: #ff00ff;
+            font-size: 11px;
+            width: 100px;
         }
-        input {
-            width: 100%;
-            padding: 6px;
+        .field-row input {
+            flex: 1;
             background: #222;
             border: 1px solid #00ff41;
             color: #0f0;
+            padding: 5px 8px;
             border-radius: 3px;
-            margin-top: 5px;
+        }
+        .add-field {
+            background: #333;
+            color: #0f0;
+            padding: 5px 10px;
+            margin-top: 10px;
         }
         hr {
             border-color: #333;
-            margin: 10px 0;
+            margin: 15px 0;
+        }
+        @media (max-width: 768px) {
+            .field-row { flex-wrap: wrap; }
+            .field-row label { width: 100%; }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <div class="logo"><h1>📷 MONEYMOM | PERMIT EDITOR</h1></div>
+        <h1>📷 MONEYMOM | PERMIT EDITOR</h1>
+        <p>Upload image → Click on any text → Type new text → Press ENTER</p>
     </div>
-    
-    <div class="main">
-        <div class="canvas-container">
-            <h3>📄 PERMIT IMAGE</h3>
-            <div style="margin-bottom: 10px;">
-                <label style="color:#0f0; font-size:12px;">📤 Upload Permit:</label>
-                <input type="file" id="imageUpload" accept="image/jpeg,image/png,image/jpg" style="background:#222; border:1px solid #0f0; color:#0f0;">
-            </div>
-            <div class="canvas-wrapper">
-                <canvas id="permitCanvas" width="800" height="500"></canvas>
-            </div>
-            <div class="status" id="status">📌 STEP 1: Upload permit | STEP 2: Draw boxes around text fields | STEP 3: Click on text to edit</div>
+
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept="image/jpeg,image/png,image/jpg">
+        <label>📤 CLICK TO UPLOAD PERMIT IMAGE (JPG or PNG)</label>
+    </div>
+
+    <div class="image-container" id="imageContainer" style="display: none;">
+        <div class="image-wrapper" id="imageWrapper">
+            <img id="permitImage" alt="Permit Image">
+        </div>
+    </div>
+
+    <div class="controls" id="controls" style="display: none;">
+        <h3>✏️ EDIT CONTROLS</h3>
+        <div class="button-group">
+            <button id="addTextBoxBtn">➕ ADD NEW TEXT BOX</button>
+            <button id="saveImageBtn">💾 SAVE & DOWNLOAD</button>
+            <button id="resetImageBtn" class="btn-danger">⟳ RESET TO ORIGINAL</button>
         </div>
         
-        <div class="instructions">
-            <h3>✏️ SETUP TEXT AREAS</h3>
-            
-            <div class="mode-buttons">
-                <button id="modeDrawBtn" style="background:#ff00ff; color:#fff;">🎨 DRAW MODE</button>
-                <button id="modeEditBtn">✏️ EDIT MODE</button>
-                <button id="clearAllBtn">🗑️ CLEAR ALL</button>
-            </div>
-            
-            <p><span style="color:#ff00ff;">▼ DRAW MODE:</span> Click + drag on image to draw a box around text</p>
-            <p><span style="color:#00ff41;">▼ EDIT MODE:</span> Click on any drawn box to edit that text</p>
-            
-            <hr>
-            
-            <h3>📋 TEXT FIELDS</h3>
-            <div id="fieldsList" class="field-list">
-                <p style="color:#666; text-align:center;">Draw boxes around text on the image first</p>
-            </div>
-            
-            <button id="saveImageBtn" style="width:100%; margin-top:10px;">💾 SAVE & DOWNLOAD PERMIT</button>
+        <div class="fields-panel" id="fieldsPanel">
+            <h4>📋 TEXT BOXES (click any box on image to edit)</h4>
+            <div id="textBoxesList"></div>
+            <button id="addFieldBtn" class="add-field">+ Add text box</button>
         </div>
+        
+        <div class="status" id="status">✅ Ready. Click on any text box to edit it.</div>
     </div>
 </div>
 
 <script>
-    // Canvas elements
-    const canvas = document.getElementById('permitCanvas');
-    const ctx = canvas.getContext('2d');
-    const fileInput = document.getElementById('imageUpload');
+    // DOM elements
+    const fileInput = document.getElementById('fileInput');
+    const imageContainer = document.getElementById('imageContainer');
+    const permitImage = document.getElementById('permitImage');
+    const imageWrapper = document.getElementById('imageWrapper');
+    const controls = document.getElementById('controls');
     const statusDiv = document.getElementById('status');
-    const fieldsListDiv = document.getElementById('fieldsList');
-    const modeDrawBtn = document.getElementById('modeDrawBtn');
-    const modeEditBtn = document.getElementById('modeEditBtn');
-    const clearAllBtn = document.getElementById('clearAllBtn');
+    const textBoxesList = document.getElementById('textBoxesList');
+    const addTextBoxBtn = document.getElementById('addTextBoxBtn');
     const saveImageBtn = document.getElementById('saveImageBtn');
+    const resetImageBtn = document.getElementById('resetImageBtn');
+    const addFieldBtn = document.getElementById('addFieldBtn');
     
-    // Variables
-    let originalImage = null;
+    // Store original image data
+    let originalImageSrc = null;
     let currentImage = null;
-    let textFields = [];  // Array of {id, label, x, y, w, h, value}
+    let textBoxes = [];
     let nextId = 1;
-    let mode = 'draw'; // 'draw' or 'edit'
-    let isDrawing = false;
-    let drawStart = { x: 0, y: 0 };
-    let drawEnd = { x: 0, y: 0 };
-    let selectedFieldId = null;
-    let editInput = null;
-    let canvasWidth = 800;
-    let canvasHeight = 500;
+    let dragging = false;
+    let dragStart = null;
+    let currentDragBox = null;
     
-    // Update mode UI
-    function updateModeUI() {
-        if (mode === 'draw') {
-            modeDrawBtn.style.background = '#ff00ff';
-            modeDrawBtn.style.color = '#fff';
-            modeEditBtn.style.background = '#333';
-            modeEditBtn.style.color = '#0f0';
-            canvas.style.cursor = 'crosshair';
-            statusDiv.innerHTML = '🎨 DRAW MODE: Click and drag on the image to draw a box around text';
-        } else {
-            modeDrawBtn.style.background = '#333';
-            modeDrawBtn.style.color = '#0f0';
-            modeEditBtn.style.background = '#00ff41';
-            modeEditBtn.style.color = '#000';
-            canvas.style.cursor = 'pointer';
-            statusDiv.innerHTML = '✏️ EDIT MODE: Click on any blue box to edit its text';
+    // Save state to localStorage
+    function saveState() {
+        const state = {
+            textBoxes: textBoxes,
+            imageSrc: originalImageSrc
+        };
+        localStorage.setItem('permitEditorState', JSON.stringify(state));
+    }
+    
+    // Load state from localStorage
+    function loadState() {
+        const saved = localStorage.getItem('permitEditorState');
+        if (saved) {
+            try {
+                const state = JSON.parse(saved);
+                if (state.imageSrc) {
+                    originalImageSrc = state.imageSrc;
+                    permitImage.src = state.imageSrc;
+                    currentImage = permitImage;
+                    textBoxes = state.textBoxes || [];
+                    nextId = Math.max(...textBoxes.map(b => b.id), 0) + 1;
+                    setTimeout(() => {
+                        renderTextBoxes();
+                        imageContainer.style.display = 'block';
+                        controls.style.display = 'block';
+                        statusDiv.innerHTML = '✅ Loaded saved permit. Click on any text box to edit.';
+                    }, 100);
+                }
+            } catch(e) {}
         }
     }
     
-    // Draw canvas with image and text fields
-    function drawCanvas() {
-        if (!currentImage) return;
+    // Render all text boxes on the image
+    function renderTextBoxes() {
+        // Remove existing overlays
+        const existingOverlays = document.querySelectorAll('.editable-text');
+        existingOverlays.forEach(el => el.remove());
         
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
-        
-        // Draw all text field boxes and text
-        for (let field of textFields) {
-            // Draw box
-            ctx.save();
-            ctx.strokeStyle = field.id === selectedFieldId ? '#ff00ff' : '#00ff41';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([5, 5]);
-            ctx.strokeRect(field.x, field.y, field.w, field.h);
-            ctx.setLineDash([]);
+        // Create new overlays
+        textBoxes.forEach(box => {
+            const div = document.createElement('div');
+            div.className = 'editable-text';
+            div.setAttribute('data-id', box.id);
+            div.style.position = 'absolute';
+            div.style.left = box.x + 'px';
+            div.style.top = box.y + 'px';
+            div.style.width = box.w + 'px';
+            div.style.height = box.h + 'px';
+            div.style.fontSize = box.fontSize + 'px';
+            div.style.fontWeight = 'bold';
+            div.style.fontFamily = '"Courier New", monospace';
+            div.style.lineHeight = box.h + 'px';
+            div.style.paddingLeft = '4px';
+            div.style.color = '#000';
+            div.style.overflow = 'hidden';
+            div.style.whiteSpace = 'nowrap';
+            div.textContent = box.text || '';
             
-            // Draw label
-            ctx.font = '10px monospace';
-            ctx.fillStyle = '#00ff41';
-            ctx.fillText(field.label, field.x, field.y - 3);
+            // Make it draggable
+            div.addEventListener('mousedown', startDrag);
+            div.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                startEditing(box.id);
+            });
             
-            // Draw text value if exists
-            if (field.value) {
-                ctx.font = 'bold 14px "Courier New", monospace';
-                ctx.fillStyle = '#000000';
-                ctx.shadowBlur = 0;
-                ctx.fillText(field.value.toUpperCase(), field.x + 3, field.y + 16);
-            }
-            ctx.restore();
-        }
+            imageWrapper.appendChild(div);
+        });
         
-        // Draw current drawing rectangle
-        if (isDrawing && mode === 'draw') {
-            ctx.save();
-            ctx.strokeStyle = '#ffff00';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([5, 5]);
-            const w = drawEnd.x - drawStart.x;
-            const h = drawEnd.y - drawStart.y;
-            ctx.strokeRect(drawStart.x, drawStart.y, w, h);
-            ctx.restore();
-        }
+        // Update fields panel
+        updateFieldsPanel();
+        saveState();
     }
     
-    // Render fields list
-    function renderFieldsList() {
-        if (textFields.length === 0) {
-            fieldsListDiv.innerHTML = '<p style="color:#666; text-align:center;">No text fields yet. Use DRAW MODE to draw boxes around text on the image.</p>';
+    // Update the fields panel list
+    function updateFieldsPanel() {
+        if (textBoxes.length === 0) {
+            textBoxesList.innerHTML = '<p style="color:#666;">No text boxes. Click "Add text box" to create one.</p>';
             return;
         }
         
         let html = '';
-        for (let field of textFields) {
+        textBoxes.forEach(box => {
             html += `
-                <div class="field-item" data-id="${field.id}" style="${field.id === selectedFieldId ? 'border:1px solid #ff00ff;' : ''}">
-                    <div>
-                        <div class="field-name">📦 ${field.label}</div>
-                        <div class="field-value">Value: ${field.value || '(empty)'}</div>
-                        <input type="text" class="field-input" data-id="${field.id}" placeholder="Edit text here" value="${field.value || ''}" style="width:100%; margin-top:5px;">
-                    </div>
-                    <button class="delete-field" data-id="${field.id}">✕</button>
+                <div class="field-row" data-id="${box.id}">
+                    <label>📦 Box ${box.id}:</label>
+                    <input type="text" class="box-text-input" data-id="${box.id}" value="${escapeHtml(box.text || '')}" placeholder="Text content">
+                    <button class="delete-box-btn" data-id="${box.id}" style="background:#ff4444; color:#fff; padding:3px 8px;">✕</button>
                 </div>
             `;
-        }
-        fieldsListDiv.innerHTML = html;
+        });
+        textBoxesList.innerHTML = html;
         
-        // Add event listeners to inputs and delete buttons
-        document.querySelectorAll('.field-input').forEach(input => {
+        // Add event listeners to inputs
+        document.querySelectorAll('.box-text-input').forEach(input => {
             input.addEventListener('change', (e) => {
                 const id = parseInt(input.dataset.id);
-                const field = textFields.find(f => f.id === id);
-                if (field) {
-                    field.value = input.value;
-                    drawCanvas();
-                    statusDiv.innerHTML = `✅ Updated "${field.label}" to: ${field.value}`;
+                const box = textBoxes.find(b => b.id === id);
+                if (box) {
+                    box.text = input.value;
+                    renderTextBoxes();
+                    statusDiv.innerHTML = `✅ Updated text box ${id} to: "${box.text}"`;
                 }
             });
         });
         
-        document.querySelectorAll('.delete-field').forEach(btn => {
+        // Add delete buttons
+        document.querySelectorAll('.delete-box-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const id = parseInt(btn.dataset.id);
-                textFields = textFields.filter(f => f.id !== id);
-                if (selectedFieldId === id) selectedFieldId = null;
-                renderFieldsList();
-                drawCanvas();
-                statusDiv.innerHTML = `🗑️ Field deleted`;
+                textBoxes = textBoxes.filter(b => b.id !== id);
+                renderTextBoxes();
+                statusDiv.innerHTML = `🗑️ Deleted text box ${id}`;
             });
         });
     }
     
-    // Add new text field from drawing
-    function addTextFieldFromDraw(x, y, w, h) {
-        const label = prompt('Enter label for this text field (e.g., SURNAME, NAME, DATE, LICENSE):', `Field ${nextId}`);
-        if (!label) return;
-        
-        textFields.push({
-            id: nextId++,
-            label: label,
-            x: Math.min(x, x + w),
-            y: Math.min(y, y + h),
-            w: Math.abs(w),
-            h: Math.abs(h),
-            value: ''
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
         });
-        
-        renderFieldsList();
-        drawCanvas();
-        statusDiv.innerHTML = `✅ Added text field: ${label} — click on it in EDIT MODE to edit text`;
     }
     
-    // Find field at coordinates
-    function findFieldAt(x, y) {
-        for (let i = textFields.length - 1; i >= 0; i--) {
-            const field = textFields[i];
-            if (x >= field.x && x <= field.x + field.w && y >= field.y && y <= field.y + field.h) {
-                return field;
-            }
-        }
-        return null;
-    }
-    
-    // Start editing a field
-    function startEditingField(field) {
-        selectedFieldId = field.id;
-        renderFieldsList();
-        drawCanvas();
+    // Start editing a text box
+    function startEditing(boxId) {
+        const box = textBoxes.find(b => b.id === boxId);
+        if (!box) return;
         
-        // Create input overlay at field position
-        if (editInput) {
-            document.body.removeChild(editInput);
-            editInput = null;
-        }
+        const overlay = document.querySelector(`.editable-text[data-id="${boxId}"]`);
+        if (!overlay) return;
         
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        // Remove editing class from all
+        document.querySelectorAll('.editable-text').forEach(el => el.classList.remove('editing'));
+        overlay.classList.add('editing');
         
-        const screenX = rect.left + (field.x / scaleX);
-        const screenY = rect.top + (field.y / scaleY);
-        const screenW = field.w / scaleX;
-        const screenH = field.h / scaleY;
+        // Create input element
+        const rect = overlay.getBoundingClientRect();
+        const containerRect = imageWrapper.getBoundingClientRect();
         
-        editInput = document.createElement('input');
-        editInput.type = 'text';
-        editInput.value = field.value || '';
-        editInput.style.position = 'fixed';
-        editInput.style.left = screenX + 'px';
-        editInput.style.top = screenY + 'px';
-        editInput.style.width = screenW + 'px';
-        editInput.style.height = screenH + 'px';
-        editInput.style.fontSize = '14px';
-        editInput.style.fontWeight = 'bold';
-        editInput.style.fontFamily = '"Courier New", monospace';
-        editInput.style.backgroundColor = '#fff';
-        editInput.style.color = '#000';
-        editInput.style.border = '2px solid #ff00ff';
-        editInput.style.outline = 'none';
-        editInput.style.padding = '2px 4px';
-        editInput.style.zIndex = '10000';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = box.text || '';
+        input.style.position = 'fixed';
+        input.style.left = rect.left + 'px';
+        input.style.top = rect.top + 'px';
+        input.style.width = rect.width + 'px';
+        input.style.height = rect.height + 'px';
+        input.style.fontSize = box.fontSize + 'px';
+        input.style.fontWeight = 'bold';
+        input.style.fontFamily = '"Courier New", monospace';
+        input.style.backgroundColor = '#ffffcc';
+        input.style.color = '#000';
+        input.style.border = '2px solid #ff00ff';
+        input.style.outline = 'none';
+        input.style.padding = '0 4px';
+        input.style.zIndex = '10000';
+        input.style.boxSizing = 'border-box';
         
-        editInput.addEventListener('keydown', (e) => {
+        input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                field.value = editInput.value;
-                drawCanvas();
-                renderFieldsList();
-                document.body.removeChild(editInput);
-                editInput = null;
-                selectedFieldId = null;
-                statusDiv.innerHTML = `✅ Saved "${field.value}" to ${field.label}`;
+                box.text = input.value;
+                renderTextBoxes();
+                document.body.removeChild(input);
+                statusDiv.innerHTML = `✅ Saved "${box.text}" to box ${boxId}`;
             } else if (e.key === 'Escape') {
-                document.body.removeChild(editInput);
-                editInput = null;
-                selectedFieldId = null;
+                document.body.removeChild(input);
                 statusDiv.innerHTML = `❌ Editing cancelled`;
+                overlay.classList.remove('editing');
             }
         });
         
-        editInput.addEventListener('blur', () => {
-            if (editInput) {
-                field.value = editInput.value;
-                drawCanvas();
-                renderFieldsList();
-                document.body.removeChild(editInput);
-                editInput = null;
-                selectedFieldId = null;
+        input.addEventListener('blur', () => {
+            if (document.body.contains(input)) {
+                box.text = input.value;
+                renderTextBoxes();
+                document.body.removeChild(input);
+                statusDiv.innerHTML = `✅ Saved "${box.text}" to box ${boxId}`;
             }
         });
         
-        document.body.appendChild(editInput);
-        editInput.focus();
-        editInput.select();
+        document.body.appendChild(input);
+        input.focus();
+        input.select();
         
-        statusDiv.innerHTML = `✏️ Editing ${field.label} — type new text, press ENTER to save`;
+        statusDiv.innerHTML = `✏️ Editing box ${boxId} — type new text, press ENTER to save`;
     }
     
-    // Mouse events for drawing
-    canvas.addEventListener('mousedown', (e) => {
-        if (mode !== 'draw') return;
+    // Drag functionality
+    function startDrag(e) {
+        const overlay = e.target.closest('.editable-text');
+        if (!overlay) return;
         
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        dragging = true;
+        currentDragBox = overlay;
+        dragStart = {
+            x: e.clientX,
+            y: e.clientY,
+            left: parseInt(overlay.style.left),
+            top: parseInt(overlay.style.top)
+        };
         
-        isDrawing = true;
-        drawStart.x = (e.clientX - rect.left) * scaleX;
-        drawStart.y = (e.clientY - rect.top) * scaleY;
-        drawEnd = { ...drawStart };
-    });
+        overlay.style.cursor = 'grabbing';
+        e.preventDefault();
+    }
     
-    canvas.addEventListener('mousemove', (e) => {
-        if (!isDrawing || mode !== 'draw') return;
+    function onDrag(e) {
+        if (!dragging || !currentDragBox) return;
         
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        const dx = e.clientX - dragStart.x;
+        const dy = e.clientY - dragStart.y;
         
-        drawEnd.x = (e.clientX - rect.left) * scaleX;
-        drawEnd.y = (e.clientY - rect.top) * scaleY;
-        drawCanvas();
-    });
-    
-    canvas.addEventListener('mouseup', (e) => {
-        if (!isDrawing || mode !== 'draw') return;
-        isDrawing = false;
+        const newLeft = dragStart.left + dx;
+        const newTop = dragStart.top + dy;
         
-        const w = drawEnd.x - drawStart.x;
-        const h = drawEnd.y - drawStart.y;
+        currentDragBox.style.left = newLeft + 'px';
+        currentDragBox.style.top = newTop + 'px';
         
-        if (Math.abs(w) > 10 && Math.abs(h) > 10) {
-            addTextFieldFromDraw(drawStart.x, drawStart.y, w, h);
+        // Update stored coordinates
+        const boxId = parseInt(currentDragBox.dataset.id);
+        const box = textBoxes.find(b => b.id === boxId);
+        if (box) {
+            box.x = newLeft;
+            box.y = newTop;
+            saveState();
         }
-        
-        drawCanvas();
-    });
+    }
     
-    // Click for edit mode
-    canvas.addEventListener('click', (e) => {
-        if (mode !== 'edit') return;
-        
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
-        
-        const x = (e.clientX - rect.left) * scaleX;
-        const y = (e.clientY - rect.top) * scaleY;
-        
-        const field = findFieldAt(x, y);
-        if (field) {
-            startEditingField(field);
-        } else {
-            statusDiv.innerHTML = '⚠️ Click inside a blue box to edit that text field';
+    function stopDrag() {
+        if (currentDragBox) {
+            currentDragBox.style.cursor = 'text';
+            currentDragBox = null;
         }
-    });
+        dragging = false;
+        saveState();
+    }
     
-    // Mode buttons
-    modeDrawBtn.addEventListener('click', () => {
-        mode = 'draw';
-        updateModeUI();
-    });
+    // Add new text box
+    function addTextBox() {
+        const wrapperRect = imageWrapper.getBoundingClientRect();
+        const imgRect = permitImage.getBoundingClientRect();
+        
+        // Center of image
+        const centerX = (imgRect.width / 2) - 100;
+        const centerY = (imgRect.height / 2) - 15;
+        
+        const newBox = {
+            id: nextId++,
+            x: Math.max(0, centerX),
+            y: Math.max(0, centerY),
+            w: 200,
+            h: 25,
+            fontSize: 14,
+            text: 'New text'
+        };
+        
+        textBoxes.push(newBox);
+        renderTextBoxes();
+        statusDiv.innerHTML = `✅ Added new text box. Click and drag to move it, double-click to edit text.`;
+    }
     
-    modeEditBtn.addEventListener('click', () => {
-        mode = 'edit';
-        updateModeUI();
-    });
-    
-    clearAllBtn.addEventListener('click', () => {
-        if (confirm('Delete all text fields?')) {
-            textFields = [];
-            nextId = 1;
-            selectedFieldId = null;
-            renderFieldsList();
-            drawCanvas();
-            statusDiv.innerHTML = '🗑️ All text fields cleared';
-        }
-    });
+    // Capture image with text boxes
+    function captureImage() {
+        return new Promise((resolve) => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = permitImage.naturalWidth;
+            canvas.height = permitImage.naturalHeight;
+            
+            // Draw original image
+            ctx.drawImage(permitImage, 0, 0, canvas.width, canvas.height);
+            
+            // Calculate scale between displayed image and actual image
+            const scaleX = permitImage.naturalWidth / permitImage.clientWidth;
+            const scaleY = permitImage.naturalHeight / permitImage.clientHeight;
+            
+            // Draw each text box
+            textBoxes.forEach(box => {
+                const actualX = box.x * scaleX;
+                const actualY = box.y * scaleY;
+                const actualW = box.w * scaleX;
+                const actualH = box.h * scaleY;
+                const fontSize = box.fontSize * scaleX;
+                
+                // Erase background (fill with white to cover old text)
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(actualX, actualY, actualW, actualH);
+                
+                // Draw new text
+                ctx.font = `bold ${fontSize}px "Courier New", monospace`;
+                ctx.fillStyle = '#000000';
+                ctx.fillText(box.text || '', actualX + 4, actualY + (actualH * 0.7));
+            });
+            
+            resolve(canvas.toDataURL('image/png'));
+        });
+    }
     
     // Save image
-    saveImageBtn.addEventListener('click', () => {
-        if (!currentImage) {
-            statusDiv.innerHTML = '⚠️ No image to save. Upload a permit first.';
-            return;
-        }
-        
-        drawCanvas();
-        
+    async function saveImage() {
+        statusDiv.innerHTML = '⏳ Generating image...';
+        const dataUrl = await captureImage();
         const link = document.createElement('a');
         link.download = 'edited_permit.png';
-        link.href = canvas.toDataURL('image/png');
+        link.href = dataUrl;
         link.click();
-        
         statusDiv.innerHTML = '💾 Permit saved and downloaded!';
-    });
+    }
     
-    // Image upload
+    // Reset to original
+    function resetImage() {
+        if (confirm('Reset all text boxes?')) {
+            textBoxes = [];
+            nextId = 1;
+            renderTextBoxes();
+            statusDiv.innerHTML = '⟳ Reset to original. All text boxes removed.';
+        }
+    }
+    
+    // Load image from file
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
         
         const reader = new FileReader();
         reader.onload = (event) => {
-            const img = new Image();
-            img.onload = () => {
-                const maxWidth = 800;
-                const scale = maxWidth / img.width;
-                canvasWidth = maxWidth;
-                canvasHeight = img.height * scale;
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
-                
-                originalImage = img;
-                currentImage = img;
-                
-                drawCanvas();
-                statusDiv.innerHTML = '✅ Image loaded! Use DRAW MODE to draw boxes around text fields.';
+            originalImageSrc = event.target.result;
+            permitImage.src = originalImageSrc;
+            currentImage = permitImage;
+            textBoxes = [];
+            nextId = 1;
+            
+            permitImage.onload = () => {
+                imageContainer.style.display = 'block';
+                controls.style.display = 'block';
+                renderTextBoxes();
+                statusDiv.innerHTML = '✅ Image loaded! Click "Add text box" to create editable areas, then double-click to edit text.';
+                saveState();
             };
-            img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     });
     
-    // Initialize
-    ctx.fillStyle = '#1a1a2e';
-    ctx.fillRect(0, 0, 800, 500);
-    ctx.fillStyle = '#0f0';
-    ctx.font = '14px monospace';
-    ctx.fillText('Upload a permit image to start', 280, 250);
+    // Add event listeners
+    addTextBoxBtn.addEventListener('click', addTextBox);
+    addFieldBtn.addEventListener('click', addTextBox);
+    saveImageBtn.addEventListener('click', saveImage);
+    resetImageBtn.addEventListener('click', resetImage);
     
-    updateModeUI();
+    // Global drag events
+    window.addEventListener('mousemove', onDrag);
+    window.addEventListener('mouseup', stopDrag);
+    
+    // Load saved state on startup
+    loadState();
+    
+    // Initial status
+    if (textBoxes.length === 0 && !originalImageSrc) {
+        statusDiv.innerHTML = '📌 Upload a permit image, then click "Add text box" to create editable areas. Double-click any box to edit text.';
+    }
 </script>
 </body>
 </html>
