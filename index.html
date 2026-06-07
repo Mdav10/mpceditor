@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MoneyMom | Simple Text Editor</title>
+    <title>MoneyMom | Drag & Resize Text Editor</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
         }
         body {
             background: #0a0e1a;
@@ -17,7 +18,7 @@
             min-height: 100vh;
         }
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         .header {
@@ -56,16 +57,33 @@
             font-size: 16px;
             cursor: pointer;
         }
-        .image-container {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-            text-align: center;
+        .editor-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .image-panel {
+            flex: 2;
+            min-width: 500px;
+            background: #111;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #00ff41;
+        }
+        .image-panel h3 {
+            color: #00ff41;
+            margin-bottom: 15px;
         }
         .image-wrapper {
             position: relative;
             display: inline-block;
-            max-width: 100%;
+            width: 100%;
+            text-align: center;
+            overflow: auto;
+        }
+        .image-container {
+            position: relative;
+            display: inline-block;
         }
         #permitImage {
             max-width: 100%;
@@ -73,44 +91,77 @@
             border: 1px solid #00ff41;
             border-radius: 5px;
             background: #fff;
+            display: block;
         }
-        .editable-text {
+        .text-overlay {
             position: absolute;
-            background: rgba(0, 255, 65, 0.15);
-            border: 1px dashed #00ff41;
-            cursor: text;
-            transition: all 0.2s;
+            cursor: move;
+            background: transparent;
+            border: 2px solid #00ff41;
+            border-radius: 3px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-        .editable-text:hover {
-            background: rgba(255, 0, 255, 0.2);
+        .text-overlay:hover {
             border-color: #ff00ff;
+            background: rgba(255,0,255,0.1);
         }
-        .editable-text.editing {
-            background: rgba(255, 255, 0, 0.3);
-            border: 2px solid #ff00ff;
-            z-index: 100;
+        .text-overlay.selected {
+            border-color: #ff00ff;
+            border-width: 3px;
+            background: rgba(255,0,255,0.15);
         }
-        .controls {
+        .text-overlay .text-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #000;
+            background: #fff;
+            padding: 0 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            background: #ff00ff;
+            cursor: nw-resize;
+            border-radius: 0 0 3px 0;
+        }
+        .controls-panel {
+            flex: 1;
+            min-width: 280px;
             background: #111;
-            border: 1px solid #00ff41;
-            border-radius: 10px;
             padding: 20px;
-            margin-top: 30px;
+            border-radius: 10px;
+            border: 1px solid #00ff41;
         }
-        .controls h3 {
+        .controls-panel h3 {
             color: #ff00ff;
             margin-bottom: 15px;
         }
         .button-group {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             flex-wrap: wrap;
+            margin-bottom: 20px;
         }
         button {
             background: #00ff41;
             color: #000;
             border: none;
-            padding: 10px 20px;
+            padding: 10px 15px;
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
@@ -123,8 +174,53 @@
             background: #ff4444;
             color: #fff;
         }
-        .btn-danger:hover {
-            background: #cc0000;
+        .text-boxes-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+        .text-box-item {
+            background: #1a1a2e;
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #00ff41;
+        }
+        .text-box-item.selected {
+            border-left-color: #ff00ff;
+            background: #2a2a3e;
+        }
+        .text-box-item input {
+            width: 100%;
+            background: #222;
+            border: 1px solid #00ff41;
+            color: #0f0;
+            padding: 5px;
+            border-radius: 3px;
+            margin: 5px 0;
+            font-weight: bold;
+        }
+        .text-box-item .label {
+            color: #ff00ff;
+            font-size: 11px;
+        }
+        .text-box-item .size-control {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        .text-box-item .size-control button {
+            padding: 3px 8px;
+            font-size: 11px;
+        }
+        .delete-box {
+            background: #ff4444;
+            color: #fff;
+            padding: 3px 8px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 5px;
         }
         .status {
             background: #1a1a2e;
@@ -135,222 +231,216 @@
             color: #00ff41;
             text-align: center;
         }
-        .fields-panel {
-            margin-top: 20px;
-            padding: 15px;
-            background: #1a1a2e;
-            border-radius: 8px;
-        }
-        .fields-panel h4 {
-            color: #00ff41;
-            margin-bottom: 10px;
-        }
-        .field-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
-            align-items: center;
-        }
-        .field-row label {
-            color: #ff00ff;
-            font-size: 11px;
-            width: 100px;
-        }
-        .field-row input {
-            flex: 1;
-            background: #222;
-            border: 1px solid #00ff41;
-            color: #0f0;
-            padding: 5px 8px;
-            border-radius: 3px;
-        }
-        .add-field {
-            background: #333;
-            color: #0f0;
-            padding: 5px 10px;
-            margin-top: 10px;
-        }
         hr {
             border-color: #333;
             margin: 15px 0;
-        }
-        @media (max-width: 768px) {
-            .field-row { flex-wrap: wrap; }
-            .field-row label { width: 100%; }
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <h1>📷 MONEYMOM | PERMIT EDITOR</h1>
-        <p>Upload image → Click on any text → Type new text → Press ENTER</p>
+        <h1>📷 MONEYMOM | DRAG & RESIZE TEXT EDITOR</h1>
+        <p>Upload image → Add text box → Drag to position → Resize to cover old text → Edit text → Save</p>
     </div>
 
     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
         <input type="file" id="fileInput" accept="image/jpeg,image/png,image/jpg">
-        <label>📤 CLICK TO UPLOAD PERMIT IMAGE (JPG or PNG)</label>
+        <label>📤 CLICK TO UPLOAD PERMIT IMAGE</label>
     </div>
 
-    <div class="image-container" id="imageContainer" style="display: none;">
-        <div class="image-wrapper" id="imageWrapper">
-            <img id="permitImage" alt="Permit Image">
-        </div>
-    </div>
-
-    <div class="controls" id="controls" style="display: none;">
-        <h3>✏️ EDIT CONTROLS</h3>
-        <div class="button-group">
-            <button id="addTextBoxBtn">➕ ADD NEW TEXT BOX</button>
-            <button id="saveImageBtn">💾 SAVE & DOWNLOAD</button>
-            <button id="resetImageBtn" class="btn-danger">⟳ RESET TO ORIGINAL</button>
+    <div class="editor-area" id="editorArea" style="display: none;">
+        <div class="image-panel">
+            <h3>📄 PERMIT IMAGE</h3>
+            <div class="image-wrapper">
+                <div class="image-container" id="imageContainer">
+                    <img id="permitImage" alt="Permit Image">
+                </div>
+            </div>
+            <div class="status" id="status">✅ Drag boxes to position | Resize from bottom-right corner | Edit text below</div>
         </div>
         
-        <div class="fields-panel" id="fieldsPanel">
-            <h4>📋 TEXT BOXES (click any box on image to edit)</h4>
-            <div id="textBoxesList"></div>
-            <button id="addFieldBtn" class="add-field">+ Add text box</button>
+        <div class="controls-panel">
+            <h3>✏️ TEXT BOXES</h3>
+            <div class="button-group">
+                <button id="addBoxBtn">➕ ADD NEW TEXT BOX</button>
+                <button id="saveImageBtn">💾 SAVE & DOWNLOAD</button>
+                <button id="resetAllBtn" class="btn-danger">⟳ RESET ALL</button>
+            </div>
+            <hr>
+            <div id="textBoxesList" class="text-boxes-list">
+                <p style="color:#666; text-align:center;">Click "Add text box" to create an editable area</p>
+            </div>
         </div>
-        
-        <div class="status" id="status">✅ Ready. Click on any text box to edit it.</div>
     </div>
 </div>
 
 <script>
     // DOM elements
     const fileInput = document.getElementById('fileInput');
-    const imageContainer = document.getElementById('imageContainer');
+    const editorArea = document.getElementById('editorArea');
     const permitImage = document.getElementById('permitImage');
-    const imageWrapper = document.getElementById('imageWrapper');
-    const controls = document.getElementById('controls');
+    const imageContainer = document.getElementById('imageContainer');
     const statusDiv = document.getElementById('status');
-    const textBoxesList = document.getElementById('textBoxesList');
-    const addTextBoxBtn = document.getElementById('addTextBoxBtn');
+    const textBoxesListDiv = document.getElementById('textBoxesList');
+    const addBoxBtn = document.getElementById('addBoxBtn');
     const saveImageBtn = document.getElementById('saveImageBtn');
-    const resetImageBtn = document.getElementById('resetImageBtn');
-    const addFieldBtn = document.getElementById('addFieldBtn');
+    const resetAllBtn = document.getElementById('resetAllBtn');
     
-    // Store original image data
-    let originalImageSrc = null;
-    let currentImage = null;
+    // Data
     let textBoxes = [];
     let nextId = 1;
+    let selectedBoxId = null;
     let dragging = false;
-    let dragStart = null;
-    let currentDragBox = null;
+    let resizing = false;
+    let dragStart = { x: 0, y: 0 };
+    let originalBox = { x: 0, y: 0, w: 0, h: 0 };
+    let currentImageFile = null;
     
-    // Save state to localStorage
+    // Save to localStorage
     function saveState() {
         const state = {
             textBoxes: textBoxes,
-            imageSrc: originalImageSrc
+            imageSrc: permitImage.src
         };
         localStorage.setItem('permitEditorState', JSON.stringify(state));
     }
     
-    // Load state from localStorage
+    // Load from localStorage
     function loadState() {
         const saved = localStorage.getItem('permitEditorState');
         if (saved) {
             try {
                 const state = JSON.parse(saved);
-                if (state.imageSrc) {
-                    originalImageSrc = state.imageSrc;
+                if (state.imageSrc && state.imageSrc !== window.location.href) {
                     permitImage.src = state.imageSrc;
-                    currentImage = permitImage;
                     textBoxes = state.textBoxes || [];
                     nextId = Math.max(...textBoxes.map(b => b.id), 0) + 1;
-                    setTimeout(() => {
-                        renderTextBoxes();
-                        imageContainer.style.display = 'block';
-                        controls.style.display = 'block';
-                        statusDiv.innerHTML = '✅ Loaded saved permit. Click on any text box to edit.';
-                    }, 100);
+                    permitImage.onload = () => {
+                        renderAllTextBoxes();
+                        editorArea.style.display = 'flex';
+                        statusDiv.innerHTML = '✅ Loaded saved permit. Drag boxes to position, resize to cover old text.';
+                    };
                 }
             } catch(e) {}
         }
     }
     
-    // Render all text boxes on the image
-    function renderTextBoxes() {
+    // Render all text boxes
+    function renderAllTextBoxes() {
         // Remove existing overlays
-        const existingOverlays = document.querySelectorAll('.editable-text');
-        existingOverlays.forEach(el => el.remove());
+        const existing = document.querySelectorAll('.text-overlay');
+        existing.forEach(el => el.remove());
         
-        // Create new overlays
+        // Create overlays
         textBoxes.forEach(box => {
-            const div = document.createElement('div');
-            div.className = 'editable-text';
-            div.setAttribute('data-id', box.id);
-            div.style.position = 'absolute';
-            div.style.left = box.x + 'px';
-            div.style.top = box.y + 'px';
-            div.style.width = box.w + 'px';
-            div.style.height = box.h + 'px';
-            div.style.fontSize = box.fontSize + 'px';
-            div.style.fontWeight = 'bold';
-            div.style.fontFamily = '"Courier New", monospace';
-            div.style.lineHeight = box.h + 'px';
-            div.style.paddingLeft = '4px';
-            div.style.color = '#000';
-            div.style.overflow = 'hidden';
-            div.style.whiteSpace = 'nowrap';
-            div.textContent = box.text || '';
+            const container = document.querySelector('.image-container');
+            if (!container) return;
             
-            // Make it draggable
-            div.addEventListener('mousedown', startDrag);
-            div.addEventListener('dblclick', (e) => {
-                e.stopPropagation();
-                startEditing(box.id);
+            const overlay = document.createElement('div');
+            overlay.className = 'text-overlay';
+            if (box.id === selectedBoxId) overlay.classList.add('selected');
+            overlay.setAttribute('data-id', box.id);
+            overlay.style.left = box.x + 'px';
+            overlay.style.top = box.y + 'px';
+            overlay.style.width = box.w + 'px';
+            overlay.style.height = box.h + 'px';
+            
+            const textDiv = document.createElement('div');
+            textDiv.className = 'text-content';
+            textDiv.style.fontSize = box.fontSize + 'px';
+            textDiv.textContent = box.text || '';
+            overlay.appendChild(textDiv);
+            
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'resize-handle';
+            resizeHandle.addEventListener('mousedown', (e) => startResize(e, box.id));
+            overlay.appendChild(resizeHandle);
+            
+            overlay.addEventListener('mousedown', (e) => {
+                if (e.target === resizeHandle) return;
+                startDrag(e, box.id);
             });
             
-            imageWrapper.appendChild(div);
+            container.appendChild(overlay);
         });
         
-        // Update fields panel
-        updateFieldsPanel();
+        updateTextBoxesList();
         saveState();
     }
     
-    // Update the fields panel list
-    function updateFieldsPanel() {
+    // Update the side panel list
+    function updateTextBoxesList() {
         if (textBoxes.length === 0) {
-            textBoxesList.innerHTML = '<p style="color:#666;">No text boxes. Click "Add text box" to create one.</p>';
+            textBoxesListDiv.innerHTML = '<p style="color:#666; text-align:center;">Click "Add text box" to create an editable area</p>';
             return;
         }
         
         let html = '';
         textBoxes.forEach(box => {
             html += `
-                <div class="field-row" data-id="${box.id}">
-                    <label>📦 Box ${box.id}:</label>
-                    <input type="text" class="box-text-input" data-id="${box.id}" value="${escapeHtml(box.text || '')}" placeholder="Text content">
-                    <button class="delete-box-btn" data-id="${box.id}" style="background:#ff4444; color:#fff; padding:3px 8px;">✕</button>
+                <div class="text-box-item ${box.id === selectedBoxId ? 'selected' : ''}" data-id="${box.id}">
+                    <div class="label">📦 Box ${box.id}</div>
+                    <input type="text" class="box-text" data-id="${box.id}" value="${escapeHtml(box.text || '')}" placeholder="Text to display">
+                    <div class="size-control">
+                        <button class="font-minus" data-id="${box.id}">🔽 Smaller</button>
+                        <button class="font-plus" data-id="${box.id}">🔼 Bigger</button>
+                        <span style="color:#0f0; font-size:11px;">Font: ${box.fontSize}px</span>
+                    </div>
+                    <button class="delete-box" data-id="${box.id}">🗑️ Delete</button>
                 </div>
             `;
         });
-        textBoxesList.innerHTML = html;
+        textBoxesListDiv.innerHTML = html;
         
-        // Add event listeners to inputs
-        document.querySelectorAll('.box-text-input').forEach(input => {
+        // Add event listeners
+        document.querySelectorAll('.box-text').forEach(input => {
             input.addEventListener('change', (e) => {
                 const id = parseInt(input.dataset.id);
                 const box = textBoxes.find(b => b.id === id);
                 if (box) {
                     box.text = input.value;
-                    renderTextBoxes();
-                    statusDiv.innerHTML = `✅ Updated text box ${id} to: "${box.text}"`;
+                    updateOverlayText(id, box.text);
+                    statusDiv.innerHTML = `✅ Updated text: "${box.text}"`;
+                    saveState();
                 }
             });
         });
         
-        // Add delete buttons
-        document.querySelectorAll('.delete-box-btn').forEach(btn => {
+        document.querySelectorAll('.font-plus').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.dataset.id);
+                const box = textBoxes.find(b => b.id === id);
+                if (box) {
+                    box.fontSize = Math.min(72, box.fontSize + 2);
+                    updateOverlayFontSize(id, box.fontSize);
+                    statusDiv.innerHTML = `🔍 Font size: ${box.fontSize}px`;
+                    saveState();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.font-minus').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.dataset.id);
+                const box = textBoxes.find(b => b.id === id);
+                if (box) {
+                    box.fontSize = Math.max(8, box.fontSize - 2);
+                    updateOverlayFontSize(id, box.fontSize);
+                    statusDiv.innerHTML = `🔍 Font size: ${box.fontSize}px`;
+                    saveState();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.delete-box').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const id = parseInt(btn.dataset.id);
                 textBoxes = textBoxes.filter(b => b.id !== id);
-                renderTextBoxes();
-                statusDiv.innerHTML = `🗑️ Deleted text box ${id}`;
+                if (selectedBoxId === id) selectedBoxId = null;
+                renderAllTextBoxes();
+                statusDiv.innerHTML = `🗑️ Deleted box ${id}`;
+                saveState();
             });
         });
     }
@@ -365,199 +455,189 @@
         });
     }
     
-    // Start editing a text box
-    function startEditing(boxId) {
-        const box = textBoxes.find(b => b.id === boxId);
-        if (!box) return;
-        
-        const overlay = document.querySelector(`.editable-text[data-id="${boxId}"]`);
-        if (!overlay) return;
-        
-        // Remove editing class from all
-        document.querySelectorAll('.editable-text').forEach(el => el.classList.remove('editing'));
-        overlay.classList.add('editing');
-        
-        // Create input element
-        const rect = overlay.getBoundingClientRect();
-        const containerRect = imageWrapper.getBoundingClientRect();
-        
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = box.text || '';
-        input.style.position = 'fixed';
-        input.style.left = rect.left + 'px';
-        input.style.top = rect.top + 'px';
-        input.style.width = rect.width + 'px';
-        input.style.height = rect.height + 'px';
-        input.style.fontSize = box.fontSize + 'px';
-        input.style.fontWeight = 'bold';
-        input.style.fontFamily = '"Courier New", monospace';
-        input.style.backgroundColor = '#ffffcc';
-        input.style.color = '#000';
-        input.style.border = '2px solid #ff00ff';
-        input.style.outline = 'none';
-        input.style.padding = '0 4px';
-        input.style.zIndex = '10000';
-        input.style.boxSizing = 'border-box';
-        
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                box.text = input.value;
-                renderTextBoxes();
-                document.body.removeChild(input);
-                statusDiv.innerHTML = `✅ Saved "${box.text}" to box ${boxId}`;
-            } else if (e.key === 'Escape') {
-                document.body.removeChild(input);
-                statusDiv.innerHTML = `❌ Editing cancelled`;
-                overlay.classList.remove('editing');
-            }
-        });
-        
-        input.addEventListener('blur', () => {
-            if (document.body.contains(input)) {
-                box.text = input.value;
-                renderTextBoxes();
-                document.body.removeChild(input);
-                statusDiv.innerHTML = `✅ Saved "${box.text}" to box ${boxId}`;
-            }
-        });
-        
-        document.body.appendChild(input);
-        input.focus();
-        input.select();
-        
-        statusDiv.innerHTML = `✏️ Editing box ${boxId} — type new text, press ENTER to save`;
+    function updateOverlayText(id, text) {
+        const overlay = document.querySelector(`.text-overlay[data-id="${id}"]`);
+        if (overlay) {
+            overlay.querySelector('.text-content').textContent = text || '';
+        }
     }
     
-    // Drag functionality
-    function startDrag(e) {
-        const overlay = e.target.closest('.editable-text');
-        if (!overlay) return;
-        
+    function updateOverlayFontSize(id, fontSize) {
+        const overlay = document.querySelector(`.text-overlay[data-id="${id}"]`);
+        if (overlay) {
+            overlay.querySelector('.text-content').style.fontSize = fontSize + 'px';
+        }
+    }
+    
+    // Start dragging
+    function startDrag(e, boxId) {
+        e.stopPropagation();
         dragging = true;
-        currentDragBox = overlay;
-        dragStart = {
-            x: e.clientX,
-            y: e.clientY,
-            left: parseInt(overlay.style.left),
-            top: parseInt(overlay.style.top)
-        };
+        selectedBoxId = boxId;
+        renderAllTextBoxes();
+        
+        const box = textBoxes.find(b => b.id === boxId);
+        const overlay = document.querySelector(`.text-overlay[data-id="${boxId}"]`);
+        
+        dragStart.x = e.clientX;
+        dragStart.y = e.clientY;
+        originalBox.x = box.x;
+        originalBox.y = box.y;
         
         overlay.style.cursor = 'grabbing';
-        e.preventDefault();
+        document.body.style.cursor = 'grabbing';
     }
     
-    function onDrag(e) {
-        if (!dragging || !currentDragBox) return;
+    // Start resizing
+    function startResize(e, boxId) {
+        e.stopPropagation();
+        resizing = true;
+        selectedBoxId = boxId;
+        renderAllTextBoxes();
         
-        const dx = e.clientX - dragStart.x;
-        const dy = e.clientY - dragStart.y;
-        
-        const newLeft = dragStart.left + dx;
-        const newTop = dragStart.top + dy;
-        
-        currentDragBox.style.left = newLeft + 'px';
-        currentDragBox.style.top = newTop + 'px';
-        
-        // Update stored coordinates
-        const boxId = parseInt(currentDragBox.dataset.id);
         const box = textBoxes.find(b => b.id === boxId);
-        if (box) {
-            box.x = newLeft;
-            box.y = newTop;
-            saveState();
-        }
+        const overlay = document.querySelector(`.text-overlay[data-id="${boxId}"]`);
+        
+        dragStart.x = e.clientX;
+        dragStart.y = e.clientY;
+        originalBox.w = box.w;
+        originalBox.h = box.h;
+        originalBox.x = box.x;
+        originalBox.y = box.y;
+        
+        overlay.style.cursor = 'nw-resize';
+        document.body.style.cursor = 'nw-resize';
     }
     
-    function stopDrag() {
-        if (currentDragBox) {
-            currentDragBox.style.cursor = 'text';
-            currentDragBox = null;
+    // Global mouse move
+    window.addEventListener('mousemove', (e) => {
+        if (dragging && selectedBoxId !== null) {
+            const box = textBoxes.find(b => b.id === selectedBoxId);
+            if (box) {
+                const dx = e.clientX - dragStart.x;
+                const dy = e.clientY - dragStart.y;
+                box.x = originalBox.x + dx;
+                box.y = originalBox.y + dy;
+                
+                const overlay = document.querySelector(`.text-overlay[data-id="${selectedBoxId}"]`);
+                if (overlay) {
+                    overlay.style.left = box.x + 'px';
+                    overlay.style.top = box.y + 'px';
+                }
+            }
+        } else if (resizing && selectedBoxId !== null) {
+            const box = textBoxes.find(b => b.id === selectedBoxId);
+            if (box) {
+                const dw = e.clientX - dragStart.x;
+                const dh = e.clientY - dragStart.y;
+                box.w = Math.max(50, originalBox.w + dw);
+                box.h = Math.max(25, originalBox.h + dh);
+                
+                const overlay = document.querySelector(`.text-overlay[data-id="${selectedBoxId}"]`);
+                if (overlay) {
+                    overlay.style.width = box.w + 'px';
+                    overlay.style.height = box.h + 'px';
+                    overlay.querySelector('.text-content').style.fontSize = box.fontSize + 'px';
+                }
+            }
         }
-        dragging = false;
-        saveState();
-    }
+    });
+    
+    window.addEventListener('mouseup', () => {
+        if (dragging || resizing) {
+            dragging = false;
+            resizing = false;
+            document.body.style.cursor = '';
+            const overlay = document.querySelector(`.text-overlay[data-id="${selectedBoxId}"]`);
+            if (overlay) overlay.style.cursor = 'move';
+            saveState();
+            statusDiv.innerHTML = '✅ Position/Size saved';
+        }
+    });
     
     // Add new text box
     function addTextBox() {
-        const wrapperRect = imageWrapper.getBoundingClientRect();
+        const containerRect = imageContainer.getBoundingClientRect();
         const imgRect = permitImage.getBoundingClientRect();
         
-        // Center of image
+        // Calculate relative position
+        const scale = permitImage.clientWidth / permitImage.naturalWidth;
         const centerX = (imgRect.width / 2) - 100;
-        const centerY = (imgRect.height / 2) - 15;
+        const centerY = (imgRect.height / 2) - 20;
         
         const newBox = {
             id: nextId++,
             x: Math.max(0, centerX),
             y: Math.max(0, centerY),
-            w: 200,
-            h: 25,
-            fontSize: 14,
-            text: 'New text'
+            w: 220,
+            h: 32,
+            fontSize: 18,
+            text: 'NEW TEXT'
         };
         
         textBoxes.push(newBox);
-        renderTextBoxes();
-        statusDiv.innerHTML = `✅ Added new text box. Click and drag to move it, double-click to edit text.`;
+        selectedBoxId = newBox.id;
+        renderAllTextBoxes();
+        statusDiv.innerHTML = `✅ New text box added. Drag to position, resize to cover old text, then edit text below.`;
+        saveState();
     }
     
-    // Capture image with text boxes
-    function captureImage() {
-        return new Promise((resolve) => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = permitImage.naturalWidth;
-            canvas.height = permitImage.naturalHeight;
-            
-            // Draw original image
-            ctx.drawImage(permitImage, 0, 0, canvas.width, canvas.height);
-            
-            // Calculate scale between displayed image and actual image
-            const scaleX = permitImage.naturalWidth / permitImage.clientWidth;
-            const scaleY = permitImage.naturalHeight / permitImage.clientHeight;
-            
-            // Draw each text box
-            textBoxes.forEach(box => {
-                const actualX = box.x * scaleX;
-                const actualY = box.y * scaleY;
-                const actualW = box.w * scaleX;
-                const actualH = box.h * scaleY;
-                const fontSize = box.fontSize * scaleX;
-                
-                // Erase background (fill with white to cover old text)
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(actualX, actualY, actualW, actualH);
-                
-                // Draw new text
-                ctx.font = `bold ${fontSize}px "Courier New", monospace`;
-                ctx.fillStyle = '#000000';
-                ctx.fillText(box.text || '', actualX + 4, actualY + (actualH * 0.7));
-            });
-            
-            resolve(canvas.toDataURL('image/png'));
-        });
-    }
-    
-    // Save image
+    // Capture and save image
     async function saveImage() {
         statusDiv.innerHTML = '⏳ Generating image...';
-        const dataUrl = await captureImage();
+        
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = permitImage.naturalWidth;
+        canvas.height = permitImage.naturalHeight;
+        
+        // Draw original image
+        ctx.drawImage(permitImage, 0, 0, canvas.width, canvas.height);
+        
+        // Calculate scale
+        const scaleX = permitImage.naturalWidth / permitImage.clientWidth;
+        const scaleY = permitImage.naturalHeight / permitImage.clientHeight;
+        
+        // Draw each text box
+        textBoxes.forEach(box => {
+            const actualX = box.x * scaleX;
+            const actualY = box.y * scaleY;
+            const actualW = box.w * scaleX;
+            const actualH = box.h * scaleY;
+            const fontSize = box.fontSize * scaleX;
+            
+            // Draw white background to cover old text
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(actualX, actualY, actualW, actualH);
+            
+            // Draw new text
+            ctx.font = `bold ${fontSize}px "Courier New", monospace`;
+            ctx.fillStyle = '#000000';
+            ctx.textBaseline = 'middle';
+            
+            // Center text in box
+            const text = box.text || '';
+            ctx.fillText(text, actualX + 5, actualY + (actualH / 2));
+        });
+        
         const link = document.createElement('a');
         link.download = 'edited_permit.png';
-        link.href = dataUrl;
+        link.href = canvas.toDataURL('image/png');
         link.click();
+        
         statusDiv.innerHTML = '💾 Permit saved and downloaded!';
     }
     
-    // Reset to original
-    function resetImage() {
-        if (confirm('Reset all text boxes?')) {
+    // Reset all
+    function resetAll() {
+        if (confirm('Remove all text boxes? This cannot be undone.')) {
             textBoxes = [];
             nextId = 1;
-            renderTextBoxes();
-            statusDiv.innerHTML = '⟳ Reset to original. All text boxes removed.';
+            selectedBoxId = null;
+            renderAllTextBoxes();
+            statusDiv.innerHTML = '⟳ All text boxes removed. Add new boxes to edit.';
+            saveState();
         }
     }
     
@@ -566,42 +646,31 @@
         const file = e.target.files[0];
         if (!file) return;
         
+        currentImageFile = file;
         const reader = new FileReader();
         reader.onload = (event) => {
-            originalImageSrc = event.target.result;
-            permitImage.src = originalImageSrc;
-            currentImage = permitImage;
-            textBoxes = [];
-            nextId = 1;
-            
+            permitImage.src = event.target.result;
             permitImage.onload = () => {
-                imageContainer.style.display = 'block';
-                controls.style.display = 'block';
-                renderTextBoxes();
-                statusDiv.innerHTML = '✅ Image loaded! Click "Add text box" to create editable areas, then double-click to edit text.';
+                // Reset text boxes
+                textBoxes = [];
+                nextId = 1;
+                selectedBoxId = null;
+                renderAllTextBoxes();
+                editorArea.style.display = 'flex';
+                statusDiv.innerHTML = '✅ Image loaded! Click "Add text box" to create editable areas. Drag to position, resize to cover old text.';
                 saveState();
             };
         };
         reader.readAsDataURL(file);
     });
     
-    // Add event listeners
-    addTextBoxBtn.addEventListener('click', addTextBox);
-    addFieldBtn.addEventListener('click', addTextBox);
+    // Button events
+    addBoxBtn.addEventListener('click', addTextBox);
     saveImageBtn.addEventListener('click', saveImage);
-    resetImageBtn.addEventListener('click', resetImage);
+    resetAllBtn.addEventListener('click', resetAll);
     
-    // Global drag events
-    window.addEventListener('mousemove', onDrag);
-    window.addEventListener('mouseup', stopDrag);
-    
-    // Load saved state on startup
+    // Load saved state
     loadState();
-    
-    // Initial status
-    if (textBoxes.length === 0 && !originalImageSrc) {
-        statusDiv.innerHTML = '📌 Upload a permit image, then click "Add text box" to create editable areas. Double-click any box to edit text.';
-    }
 </script>
 </body>
-</html>
+</html>/
